@@ -173,6 +173,7 @@
       ],
       'defines': [
         '_REENTRANT=1',
+        'SQLITE_MAX_VARIABLE_NUMBER=9999999999',
         'SQLITE_THREADSAFE=1',
         'HAVE_USLEEP=1',
         'SQLITE_ENABLE_FTS3',
