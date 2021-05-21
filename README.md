@@ -17,8 +17,6 @@ yarn add "@journeyapps/sqlcipher"
 # Or: npm install --save "@journeyapps/sqlcipher"
 ```
 
-For Electron, use `electron-rebuild` or similar tool.
-
 # Usage
 
 ``` js
@@ -51,11 +49,13 @@ db.close();
 
 # SQLCipher
 
-A copy of the source for SQLCipher 4.4.0 is bundled, which is based on SQLite 3.31.0.
+A copy of the source for SQLCipher 4.4.2 is bundled, which is based on SQLite 3.33.0.
 
 ## Building from source.
 
-This is done automatically by node-pre-gyp when installing on a platform without pre-built binaries.
+This is done automatically by node-pre-gyp when installing on a platform without pre-built binaries. This should generally
+not be required with later versions, since two pre-built versions (N-API 3 and N-API 6) cover all electron and node versions.
+
 However, this does require some additional setup, and is likely to run against obscure errors when installing.
 
 Requirements:
@@ -69,11 +69,33 @@ Requirements:
  * Visual Studio 2015
  * Python 2.7
 
+## Usage with electron-forge / electron-rebuild
+
+[electron-forge](https://www.electronforge.io/) uses [electron-rebuild](https://github.com/electron/electron-rebuild) and attempts to rebuild this library from source by default, in a way
+that is _not_ compatible with the way `node-pre-gyp` is used here.
+
+The workaround is to disable the rebuilding:
+1. If using Electron 11+, use a node version that supports N-API 6+ (v10.20.0+ / v12.17.0+ / v14.0.0).
+2. After `npm install` / `yarn install`, make sure that the folder `node_modules/@journeyapps/sqlcipher/lib/binding/napi-v6-linux-x64` exists.
+   If not, check the previous step again, remove the `node_modules` folder, and try again.
+3. Disable rebuilding of this library using the `onlyModules` option of `electron-rebuild` in your `package.json`:
+
+        "config": {
+            "forge": {
+                "electronRebuildConfig": {
+                    "onlyModules": []  // Specify other native modules here if required
+                }
+            }
+        }
+
+Note: [electron-builder](https://www.electron.build/) does not appear to have this issue, and should work directly.
+Similarly, using electron directly should just work, but do check that a compatible node version is used (see above). 
+
 ## OpenSSL
 
-SQLCipher depends on OpenSSL. When using NodeJS, OpenSSL is provided by NodeJS itself. For Electron, we need to use our own copy.
+SQLCipher depends on OpenSSL.
 
-For Windows, we bundle OpenSSL 1.0.2n. Pre-built libraries are used from https://slproweb.com/products/Win32OpenSSL.html.
+For Windows, we bundle OpenSSL 1.1.1i. Binaries are generated using [vckpg](https://github.com/microsoft/vcpkg) (e.g., `.\vcpkg\vcpkg install openssl:x64-windows-static`).
 
 On Mac we build against OpenSSL installed via brew, but statically link it so that end-users do not need to install it.
 
